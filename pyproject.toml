@@ -2,7 +2,7 @@
 name = "haihuozhe-backend"
 version = "1.0.0"
 description = "Check-in timeout monitoring backend for Haihuozhe project"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["maicarons"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -16,6 +16,12 @@ python-multipart = "0.0.6"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "haihuozhe-backend"
+version = "1.0.0"
+description = "Check-in timeout monitoring backend for Haihuozhe project"
+authors = ["maicarons"]
 
 [project.scripts]
 app = "api.app:app"

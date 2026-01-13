@@ -1,37 +1,24 @@
 [tool.poetry]
 name = "haihuozhe-backend"
-version = "0.1.0"
-description = "Backend for haihuozhe check-in timeout monitoring"
+version = "1.0.0"
+description = "Check-in timeout monitoring backend for Haihuozhe project"
 authors = ["Your Name <your.email@example.com>"]
-maintainers = ["Your Name <your.email@example.com>"]
 
-[project]
-name = "haihuozhe-backend"
-version = "0.1.0"
-description = "Backend for haihuozhe check-in timeout monitoring"
-authors = [{name = "Your Name", email = "your.email@example.com"}]
-readme = "README.md"
-requires-python = ">=3.12"
-license = {text = "AGPL-3.0"}
-dependencies = [
-    "fastapi>=0.104.1",
-    "uvicorn>=0.24.0",
-    "apscheduler>=3.10.4",
-    "aiohttp>=3.9.1",
-    "pydantic>=2.5.0",
-    "python-multipart>=0.0.6"
-]
-optional-dependencies = {dev = [
-    "pytest>=7.4.3",
-    "httpx>=0.25.2"
-]}
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "0.104.1"
+uvicorn = {extras = ["standard"], version = "0.24.0"}
+apscheduler = "3.10.4"
+aiohttp = "3.9.1"
+pydantic = "2.5.0"
+python-multipart = "0.0.6"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [project.scripts]
-app = "app:app"
+app = "api.app:app"
 
 [tool.vercel.scripts]
-build = "echo 'No build required'"
+build = "python build.py"

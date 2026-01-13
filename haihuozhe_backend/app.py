@@ -4,6 +4,9 @@ import logging
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi.responses import FileResponse
+from db.user_storage import UserStorage
+from utils.timeout_checker import TimeoutChecker
+from routes import users_router
 
 
 # 配置日志
@@ -15,10 +18,6 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """生命周期管理器"""
     logger.info("正在启动...")
-    
-    # 动态导入以避免循环依赖和路径问题
-    from db.user_storage import UserStorage
-    from utils.timeout_checker import TimeoutChecker
     
     # 初始化用户存储
     user_storage = UserStorage()
@@ -48,13 +47,8 @@ async def lifespan(app: FastAPI):
     scheduler.shutdown()
 
 
-# 注意：由于Vercel不支持长时间运行的后台任务，以下函数不会自动执行
-# 如需定期执行此任务，应使用外部服务或Vercel Cron Jobs
 async def check_all_users_timeout_job(app: FastAPI):
     """检查所有用户超时的作业函数"""
-    from db.user_storage import UserStorage
-    from utils.timeout_checker import TimeoutChecker
-    
     timeout_checker = app.state.timeout_checker
     user_storage = app.state.user_storage
     users_db = user_storage.get_all_users()
@@ -64,8 +58,6 @@ async def check_all_users_timeout_job(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# 动态导入路由
-from routes import users_router
 # 注册路由
 app.include_router(users_router)
 
@@ -79,7 +71,7 @@ async def read_root():
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     """网站图标"""
-    return FileResponse("../logo.png")
+    return FileResponse("logo.png")
 
 
 @app.get("/health")

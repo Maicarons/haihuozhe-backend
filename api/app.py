@@ -3,6 +3,7 @@ from fastapi import FastAPI
 import logging
 from datetime import datetime
 from fastapi.responses import FileResponse
+import os
 
 
 # 配置日志
@@ -14,6 +15,10 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """生命周期管理器 - 适用于Vercel部署"""
     logger.info("正在启动Vercel应用...")
+    
+    # 在Vercel环境中，强制使用内存数据库，因为文件系统是只读的
+    if os.environ.get("VERCEL"):
+        os.environ.setdefault("USE_MEMORY_DB", "true")
     
     # 动态导入以避免循环依赖和路径问题
     from db.user_storage import UserStorage

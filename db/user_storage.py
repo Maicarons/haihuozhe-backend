@@ -4,17 +4,41 @@ from typing import Dict, Optional
 from models.user import CheckinUser
 from datetime import datetime
 import os
+import tempfile
 
 
 class UserStorage:
-    """用户数据存储 - SQLite版"""
+    """用户数据存储 - 支持Vercel环境版（支持内存和文件存储）"""
     
-    def __init__(self, db_path: str = "user_data.db"):
-        self.db_path = db_path
-        self.init_db()
+    def __init__(self, db_path: str = None):
+        # 检测是否在Vercel等无服务器环境中强制使用内存存储
+        if os.environ.get("USE_MEMORY_DB", "").lower() == "true":
+            self.use_memory = True
+            self.users = {}  # 使用字典作为内存存储
+        else:
+            self.use_memory = False
+            if db_path is None:
+                if os.environ.get("VERCEL") or os.environ.get("LAMBDA_TASK_ROOT"):
+                    # 在Vercel环境中使用临时目录
+                    temp_dir = os.environ.get("TMPDIR", tempfile.gettempdir())
+                    self.db_path = os.path.join(temp_dir, "user_data.db")
+                else:
+                    self.db_path = "user_data.db"
+            else:
+                self.db_path = db_path
+            
+            self.init_db()
     
     def init_db(self):
         """初始化数据库"""
+        if self.use_memory:
+            return  # 内存模式不需要初始化文件数据库
+        
+        # 确保目录存在
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir:
+            os.makedirs(db_dir, exist_ok=True)
+        
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
@@ -34,6 +58,9 @@ class UserStorage:
     
     def get_user(self, user_id: str) -> Optional[CheckinUser]:
         """获取用户"""
+        if self.use_memory:
+            return self.users.get(user_id)
+        
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
@@ -71,6 +98,10 @@ class UserStorage:
     
     def save_user(self, user: CheckinUser):
         """保存用户"""
+        if self.use_memory:
+            self.users[user.user_id] = user
+            return
+        
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
@@ -95,6 +126,12 @@ class UserStorage:
     
     def delete_user(self, user_id: str) -> bool:
         """删除用户"""
+        if self.use_memory:
+            if user_id in self.users:
+                del self.users[user_id]
+                return True
+            return False
+        
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
@@ -108,6 +145,9 @@ class UserStorage:
     
     def get_all_users(self) -> Dict[str, CheckinUser]:
         """获取所有用户"""
+        if self.use_memory:
+            return self.users.copy()
+        
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
